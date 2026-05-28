@@ -1,35 +1,32 @@
 import streamlit as st
 import pickle
+import os
 
-# Load saved model
-sgd_model = pickle.load(open("sgd_model.pkl", "rb"))
+# Load model
+try:
+    sgd_model = pickle.load(open("sgd_model.pkl", "rb"))
+except FileNotFoundError:
+    st.error("❌ Error: sgd_model.pkl not found. Make sure the file is in the repository.")
+    st.stop()
 
-# Load TF-IDF vectorizer
-vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
+# Load vectorizer
+try:
+    vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
+except FileNotFoundError:
+    st.error("❌ Error: vectorizer.pkl not found. Make sure the file is in the repository.")
+    st.stop()
 
-# Page title
-st.title("Prompt Injection Detection System")
+# Title
+st.title("Prompt Injection Detection")
 
-# Description
-st.write("This app predicts the category of prompt injection attacks using SGD Classifier.")
+# Input
+user_input_text = st.text_area("Enter text")
 
-# User input box
-user_input_text = st.text_area("Enter text for prediction")
-
-# Prediction button
+# Prediction
 if st.button("Predict"):
 
-    # Check empty input
-    if user_input_text.strip() != "":
+    user_input_vectorized = vectorizer.transform([user_input_text])
 
-        # Convert text into numerical form
-        user_input_vectorized = vectorizer.transform([user_input_text])
+    predicted_category = sgd_model.predict(user_input_vectorized)
 
-        # Predict category
-        predicted_category = sgd_model.predict(user_input_vectorized)
-
-        # Show prediction
-        st.success(f"Predicted Category: {predicted_category[0]}")
-
-    else:
-        st.warning("Please enter some text")
+    st.success(f"Prediction: {predicted_category[0]}")
